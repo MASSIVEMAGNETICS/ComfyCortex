@@ -2202,6 +2202,7 @@ def init_builtin_extra_nodes():
     extras_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "comfy_extras")
     extras_files = [
         "example_cognitive_nodes.py",
+        "dynamic_py_node.py",
         "nodes_latent.py",
         "nodes_hypernetwork.py",
         "nodes_upscale_model.py",
