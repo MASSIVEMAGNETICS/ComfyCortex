@@ -1,0 +1,265 @@
+/* Import Tailwind CSS (conceptually, as we are not running a build process) */
+/* @import 'tailwindcss/base'; */
+/* @import 'tailwindcss/components'; */
+/* @import 'tailwindcss/utilities'; */
+
+/*
+  Since we can't actually run Tailwind's build process here,
+  these styles will be written as if Tailwind has processed the config.
+  We'll use CSS variables inspired by the Tailwind config for clarity.
+*/
+
+:root {
+  --cortex-dark: #0d0d0d;
+  --cortex-bg-primary: #1a1a1a;
+  --cortex-bg-secondary: #2c2c2c;
+  --cortex-border: #404040;
+  --cortex-text-primary: #e0e0e0;
+  --cortex-text-secondary: #b0b0b0;
+
+  --cortex-neon-green: #39ff14;
+  --cortex-neon-cyan: #00ffff;
+  --cortex-neon-magenta: #ff00ff;
+  --cortex-neon-blue: #007bff;
+  --cortex-neon-red: #ff1744;
+  --cortex-neon-yellow: #f0ff00;
+
+  --cortex-button-bg: #2a2a2a;
+  --cortex-button-hover-bg: #383838;
+  --cortex-input-bg: #252525;
+
+  /* Font for a more futuristic feel - needs to be imported in index.html if used */
+  /* --font-orbitron: 'Orbitron', sans-serif; */
+}
+
+/* Basic body styling for Comfy Cortex */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern sans-serif */
+  margin: 0;
+  background-color: var(--cortex-dark);
+  color: var(--cortex-text-primary);
+  line-height: 1.6;
+  overflow: hidden; /* Prevent scrollbars from main page, graph will handle its own */
+}
+
+#app {
+  display: flex; /* This will be the main layout container */
+  flex-direction: column; /* Or row, depending on final layout */
+  height: 100vh;
+  width: 100vw;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--cortex-neon-cyan); /* Neon headers */
+  text-shadow: 0 0 3px var(--cortex-neon-cyan), 0 0 5px rgba(0, 255, 255, 0.5);
+  margin-top: 0;
+}
+
+p {
+  color: var(--cortex-text-secondary);
+}
+
+a {
+  color: var(--cortex-neon-magenta);
+  text-decoration: none;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+a:hover {
+  color: #ff69b4; /* Lighter magenta */
+  text-shadow: 0 0 5px var(--cortex-neon-magenta);
+}
+
+/* --- Neon Effect Classes --- */
+.neon-text-green {
+  color: var(--cortex-neon-green);
+  text-shadow: 0 0 2px var(--cortex-neon-green), 0 0 5px var(--cortex-neon-green), 0 0 8px rgba(57, 255, 20, 0.7);
+}
+.neon-text-cyan {
+  color: var(--cortex-neon-cyan);
+  text-shadow: 0 0 2px var(--cortex-neon-cyan), 0 0 5px var(--cortex-neon-cyan), 0 0 8px rgba(0, 255, 255, 0.7);
+}
+.neon-text-magenta {
+  color: var(--cortex-neon-magenta);
+  text-shadow: 0 0 2px var(--cortex-neon-magenta), 0 0 5px var(--cortex-neon-magenta), 0 0 8px rgba(255, 0, 255, 0.7);
+}
+.neon-text-blue {
+  color: var(--cortex-neon-blue);
+  text-shadow: 0 0 2px var(--cortex-neon-blue), 0 0 5px var(--cortex-neon-blue), 0 0 8px rgba(0, 123, 255, 0.7);
+}
+
+.neon-border-green {
+  border: 1px solid var(--cortex-neon-green);
+  box-shadow: 0 0 3px var(--cortex-neon-green), inset 0 0 3px var(--cortex-neon-green);
+}
+.neon-border-cyan {
+  border: 1px solid var(--cortex-neon-cyan);
+  box-shadow: 0 0 3px var(--cortex-neon-cyan), inset 0 0 3px var(--cortex-neon-cyan);
+}
+.neon-border-magenta {
+  border: 1px solid var(--cortex-neon-magenta);
+  box-shadow: 0 0 3px var(--cortex-neon-magenta), inset 0 0 3px var(--cortex-neon-magenta);
+}
+
+/* --- Basic UI Element Styling (Placeholders) --- */
+
+/* Buttons */
+button, .button {
+  background-color: var(--cortex-button-bg);
+  color: var(--cortex-neon-green);
+  border: 1px solid var(--cortex-neon-green);
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 0 2px var(--cortex-neon-green);
+}
+
+button:hover, .button:hover {
+  background-color: var(--cortex-button-hover-bg);
+  color: #fff;
+  box-shadow: 0 0 8px var(--cortex-neon-green), 0 0 15px var(--cortex-neon-green);
+}
+
+/* Inputs */
+input[type="text"], input[type="number"], textarea, select {
+  background-color: var(--cortex-input-bg);
+  color: var(--cortex-text-primary);
+  border: 1px solid var(--cortex-border);
+  padding: 0.5em;
+  border-radius: 4px;
+  width: 100%; /* Or specific widths */
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--cortex-neon-cyan);
+  box-shadow: 0 0 5px var(--cortex-neon-cyan);
+}
+
+/* Panels and Containers (generic) */
+.panel {
+  background-color: var(--cortex-bg-primary);
+  border: 1px solid var(--cortex-border);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px; /* Example spacing */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Graph Node Placeholder Styling */
+.graph-node {
+  background-color: var(--cortex-bg-secondary);
+  border: 1px solid var(--cortex-neon-blue);
+  color: var(--cortex-text-primary);
+  border-radius: 8px;
+  padding: 10px;
+  min-width: 150px;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5), inset 0 0 5px rgba(0,123,255,0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+.graph-node:hover {
+  box-shadow: 0 0 12px var(--cortex-neon-blue), inset 0 0 8px rgba(0,123,255,0.5);
+}
+
+/* Specific styling for AGI Component nodes */
+.graph-node.agi-component { /* Assuming litegraph allows adding a class based on node category or a custom property */
+  border-color: var(--cortex-neon-magenta);
+  box-shadow: 0 0 8px rgba(255, 0, 255, 0.5), inset 0 0 5px rgba(255,0,255,0.3);
+}
+
+.graph-node.agi-component:hover {
+  box-shadow: 0 0 12px var(--cortex-neon-magenta), inset 0 0 8px rgba(255,0,255,0.5);
+}
+
+.graph-node.agi-component .graph-node-title {
+  color: var(--cortex-neon-magenta); /* Distinguish title color as well */
+}
+
+.graph-node-title {
+  font-weight: bold;
+  color: var(--cortex-neon-cyan);
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--cortex-border);
+}
+
+.graph-node-slot {
+  padding: 3px 0;
+  font-size: 0.9em;
+}
+
+/* Graph Connection (Edge) Placeholder Styling */
+.graph-connection {
+  stroke: var(--cortex-neon-green);
+  stroke-width: 2px;
+  fill: none;
+  filter: drop-shadow(0 0 2px var(--cortex-neon-green));
+}
+
+/* Scrollbars for a more integrated dark theme look */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cortex-dark);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--cortex-bg-secondary);
+  border-radius: 5px;
+  border: 2px solid var(--cortex-dark);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--cortex-border);
+}
+::-webkit-scrollbar-corner {
+  background: var(--cortex-dark);
+}
+
+/* Example: Main layout areas (conceptual) */
+#main-graph-area {
+  flex-grow: 1;
+  background-color: var(--cortex-dark); /* The canvas itself */
+  /* background-image: radial-gradient(var(--cortex-bg-primary) 1px, transparent 1px);
+  background-size: 15px 15px; Optional grid for graph background */
+}
+
+#control-panel-area {
+  width: 300px; /* Example width */
+  background-color: var(--cortex-bg-primary);
+  padding: 10px;
+  border-left: 1px solid var(--cortex-border);
+  overflow-y: auto;
+}
+
+/* Specific Comfy Cortex Elements */
+#run-brain-button { /* Assuming an ID for the main button */
+  background-color: var(--cortex-neon-green);
+  color: var(--cortex-dark);
+  border: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  text-shadow: none;
+  box-shadow: 0 0 10px var(--cortex-neon-green), 0 0 20px var(--cortex-neon-green);
+}
+#run-brain-button:hover {
+  background-color: #fff;
+  color: var(--cortex-neon-green);
+  box-shadow: 0 0 15px var(--cortex-neon-green), 0 0 30px var(--cortex-neon-green), inset 0 0 5px var(--cortex-neon-green);
+}
+
+/* Utility class for a subtle inset neon effect */
+.inset-neon-glow-green {
+  box-shadow: inset 0 0 5px rgba(57, 255, 20, 0.4), inset 0 0 10px rgba(57, 255, 20, 0.3);
+}
+.inset-neon-glow-cyan {
+  box-shadow: inset 0 0 5px rgba(0, 255, 255, 0.4), inset 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+/* Add more specific styles as Vue components are defined/identified */

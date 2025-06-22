@@ -669,6 +669,130 @@ class PromptServer():
                 }
                 return web.json_response({"error": error, "node_errors": {}}, status=400)
 
+        @routes.post("/run_brain")
+        async def post_run_brain(request):
+            logging.info("got run_brain request")
+            json_data =  await request.json()
+            # Potentially, trigger different on_prompt handlers for brains if needed in future
+            # json_data = self.trigger_on_run_brain(json_data)
+
+            # For now, use the same numbering and queueing logic as /prompt
+            # A separate number sequence for brains could be introduced if necessary
+            if "number" in json_data:
+                number = float(json_data['number'])
+            else:
+                number = self.number
+                if "front" in json_data: # front means queue at the beginning
+                    if json_data['front']:
+                        number = -number
+                self.number += 1
+
+            if "prompt" in json_data:
+                prompt = json_data["prompt"]
+                # Potentially, different validation logic for brains
+                valid = execution.validate_prompt(prompt)
+                extra_data = {}
+                if "extra_data" in json_data:
+                    extra_data = json_data["extra_data"]
+
+                if "client_id" in json_data:
+                    extra_data["client_id"] = json_data["client_id"]
+
+                if valid[0]:
+                    prompt_id = str(uuid.uuid4())
+                    outputs_to_execute = valid[2]
+                    # Using the same prompt_queue for now
+                    self.prompt_queue.put((number, prompt_id, prompt, extra_data, outputs_to_execute))
+                    response = {"prompt_id": prompt_id, "number": number, "node_errors": valid[3]}
+                    logging.info(f"Brain execution queued with ID: {prompt_id}")
+                    return web.json_response(response)
+                else:
+                    logging.warning("invalid brain prompt: {}".format(valid[1]))
+                    return web.json_response({"error": valid[1], "node_errors": valid[3]}, status=400)
+            else:
+                error = {
+                    "type": "no_prompt_in_run_brain",
+                    "message": "No prompt (workflow) provided for run_brain",
+                    "details": "No prompt (workflow) provided for run_brain",
+                    "extra_info": {}
+                }
+                logging.warning("No prompt in run_brain request.")
+                return web.json_response({"error": error, "node_errors": {}}, status=400)
+
+        @routes.post("/reload_agi_modules")
+        async def post_reload_agi_modules(request):
+            logging.info("got reload_agi_modules request")
+            try:
+                # This function will be implemented in nodes.py
+                # It will handle the actual reloading and updating of node mappings.
+                # For now, assume it exists and call it.
+                # We might need to pass the `nodes` module or specific functions/mappings if they are not globally accessible.
+                # However, nodes.NODE_CLASS_MAPPINGS and nodes.NODE_DISPLAY_NAME_MAPPINGS are global.
+
+                # Placeholder for the actual call to the reloading logic
+                # import nodes # Make sure nodes is imported
+                # success_message = nodes.reload_all_agi_nodes() # This function needs to be created
+
+                # Simulate success for now
+                # In a real scenario, this would call a function in nodes.py
+                # which would then modify nodes.NODE_CLASS_MAPPINGS etc.
+                # For the purpose of this step, we are just defining the endpoint.
+                # The actual reloading logic will be part of modifying nodes.py next.
+
+                # Let's assume a function reload_custom_nodes_from_directory will be created in nodes.py
+                # that can target a specific directory like 'agi_nodes'.
+                # Or a more general reload_custom_nodes() that re-runs init_external_custom_nodes()
+                # after clearing relevant parts of NODE_CLASS_MAPPINGS.
+
+                # For now, let's consider what needs to happen:
+                # 1. Clear existing AGI nodes from NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS.
+                # 2. Re-import modules from 'agi_nodes/' and update the mappings.
+                # This is complex because `load_custom_node` appends. We'd need a way to
+                # identify and remove only the AGI nodes before reloading.
+
+                # A simpler approach for now: The user is responsible for ensuring no conflicts.
+                # The reload mechanism would just re-run the loading for agi_nodes.
+                # This is not true hot-reloading with state preservation but a re-import.
+
+                # For the purpose of this step, we'll just log and return success.
+                # The actual implementation of reloading logic in nodes.py is the more complex part.
+
+                # This is where we'd call nodes.reload_agi_nodes()
+                # For now, we'll just return a success message.
+                # The actual implementation will be in the next interaction focusing on nodes.py
+
+                # Let's assume a simple re-scan like what happens at startup for custom_nodes
+                # but targeted or with a clear mechanism.
+                # For now, this endpoint just exists. The logic will be in nodes.py
+
+                # Placeholder for actual reloading logic
+                # For now, just a stub.
+                # In a real implementation, this would call nodes.trigger_agi_reload() or similar.
+                logging.info("AGI modules reload triggered. Actual reloading logic to be implemented in nodes.py.")
+
+                # This is a simplified simulation. A full reload would involve:
+                # 1. Identifying modules loaded from `agi_nodes`.
+                # 2. Removing their classes from `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS`.
+                # 3. Clearing them from `sys.modules` or using `importlib.reload`.
+                # 4. Re-running the discovery and loading process for `agi_nodes`.
+                # For now, we just acknowledge the request.
+
+                # The actual work will be in nodes.py. This endpoint is just the trigger.
+                # We'll refine this once the nodes.py part is clearer.
+
+                # For now, let's assume the call to a (yet to be written) function in nodes.py
+                # nodes.handle_reload_agi_modules() # This would do the heavy lifting.
+
+                # Call the actual handler from nodes.py
+                # Ensure nodes module is accessible. It's usually imported globally in main.py,
+                # and server.py itself imports 'nodes'.
+                status_message = nodes.reload_agi_nodes_handler()
+                return web.json_response({"status": "success", "message": status_message})
+            except Exception as e:
+                logging.error(f"Error during AGI modules reload: {e}")
+                logging.error(traceback.format_exc())
+                return web.json_response({"status": "error", "message": str(e)}, status=500)
+
         @routes.post("/queue")
         async def post_queue(request):
             json_data =  await request.json()

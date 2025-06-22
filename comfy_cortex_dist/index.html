@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" /> <!-- Placeholder icon -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comfy Cortex</title>
+    <!-- In a real build, Vite would inject compiled CSS and JS links here -->
+    <!-- For simulation, we might manually link to a main.css and main.js later -->
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <div id="app">
+      <!-- Vue app will mount here -->
+      <div id="control-strip" style="padding: 10px; background-color: var(--cortex-bg-secondary); text-align: center;">
+        <button id="run-brain-button">RUN BRAIN</button>
+      </div>
+      <div id="main-graph-area" style="flex-grow: 1; padding: 10px;">
+        <h1>Comfy Cortex</h1>
+        <p>Graph editor and UI will load here.</p>
+      </div>
+    </div>
+    <!-- Placeholder for script tag, Vite would inject this -->
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

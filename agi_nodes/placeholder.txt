@@ -1,0 +1,2 @@
+This directory is for custom AGI Python modules.
+Each .py file in here can define new nodes for Comfy Cortex.

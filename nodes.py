@@ -2085,6 +2085,10 @@ EXTENSION_WEB_DIRS = {}
 # Dictionary of successfully loaded module names and associated directories.
 LOADED_MODULE_DIRS = {}
 
+# Dictionary to track the origin of custom node classes for reloading purposes
+# Maps class_name to a dictionary containing {'module_path': path, 'module_parent': parent}
+CUSTOM_NODE_CLASS_ORIGINS = {}
+
 
 def get_module_name(module_path: str) -> str:
     """
@@ -2142,6 +2146,11 @@ def load_custom_node(module_path: str, ignore=set(), module_parent="custom_nodes
                 if name not in ignore:
                     NODE_CLASS_MAPPINGS[name] = node_cls
                     node_cls.RELATIVE_PYTHON_MODULE = "{}.{}".format(module_parent, get_module_name(module_path))
+                    CUSTOM_NODE_CLASS_ORIGINS[name] = {
+                        'module_path': module_path, # Store full path to .py file or directory
+                        'module_parent': module_parent, # e.g., "custom_nodes" or "comfy_extras" or "agi_nodes"
+                        'sys_module_name': sys_module_name # The name used in sys.modules
+                    }
             if hasattr(module, "NODE_DISPLAY_NAME_MAPPINGS") and getattr(module, "NODE_DISPLAY_NAME_MAPPINGS") is not None:
                 NODE_DISPLAY_NAME_MAPPINGS.update(module.NODE_DISPLAY_NAME_MAPPINGS)
             return True
@@ -2274,6 +2283,108 @@ def init_builtin_extra_nodes():
             import_failed.append(node_file)
 
     return import_failed
+
+def reload_agi_nodes_handler():
+    """
+    Reloads all nodes from the 'agi_nodes' directory.
+    This involves:
+    1. Identifying all currently registered nodes originating from 'agi_nodes'.
+    2. Removing them from NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS.
+    3. Removing their modules from sys.modules.
+    4. Re-scanning the 'agi_nodes' directory and loading the modules again.
+    """
+    logging.info("Attempting to reload AGI nodes...")
+
+    agi_node_classes_to_remove = []
+    agi_module_sys_names_to_remove = set()
+    agi_module_paths_to_reload = set()
+
+    # Correctly identify the base path for agi_nodes
+    # folder_paths.base_path should be the root of the ComfyUI installation
+    # This requires folder_paths to be imported.
+    import folder_paths as comfy_folder_paths # Use an alias to avoid confusion if needed
+
+    # Determine the absolute path for agi_nodes
+    # Assuming 'agi_nodes' is a direct subdirectory of comfy_folder_paths.base_path
+    # This was how it was added in folder_paths.py: os.path.join(base_path, "agi_nodes")
+    expected_agi_nodes_parent_dir = os.path.join(comfy_folder_paths.base_path, "agi_nodes")
+
+    for class_name, origin_info in CUSTOM_NODE_CLASS_ORIGINS.items():
+        module_path = origin_info.get('module_path', '')
+        # Check if the module_path is within our expected agi_nodes directory
+        # Need to be careful with how module_path is stored (abs vs rel)
+        # load_custom_node stores the absolute path in LOADED_MODULE_DIRS,
+        # but module_path in CUSTOM_NODE_CLASS_ORIGINS comes directly from load_custom_node's arg.
+        # Let's ensure we're comparing absolute paths.
+        abs_module_path = os.path.abspath(module_path)
+        if os.path.commonpath([abs_module_path, expected_agi_nodes_parent_dir]) == expected_agi_nodes_parent_dir:
+            agi_node_classes_to_remove.append(class_name)
+            agi_module_sys_names_to_remove.add(origin_info.get('sys_module_name'))
+            # We need the path to the .py file or the directory for package-style nodes
+            agi_module_paths_to_reload.add(module_path)
+
+    if not agi_node_classes_to_remove:
+        logging.info("No AGI nodes found to reload.")
+        return "No AGI nodes registered or found for reloading."
+
+    logging.info(f"Found {len(agi_node_classes_to_remove)} AGI node classes to remove and reload.")
+    logging.debug(f"AGI classes to remove: {agi_node_classes_to_remove}")
+    logging.debug(f"AGI sys modules to remove: {list(agi_module_sys_names_to_remove)}")
+    logging.debug(f"AGI module paths to reload: {list(agi_module_paths_to_reload)}")
+
+    for class_name in agi_node_classes_to_remove:
+        if class_name in NODE_CLASS_MAPPINGS:
+            del NODE_CLASS_MAPPINGS[class_name]
+        if class_name in NODE_DISPLAY_NAME_MAPPINGS:
+            del NODE_DISPLAY_NAME_MAPPINGS[class_name]
+        # Also remove from CUSTOM_NODE_CLASS_ORIGINS itself to keep it clean for next load
+        if class_name in CUSTOM_NODE_CLASS_ORIGINS:
+            del CUSTOM_NODE_CLASS_ORIGINS[class_name]
+
+    for sys_module_name in agi_module_sys_names_to_remove:
+        if sys_module_name in sys.modules:
+            del sys.modules[sys_module_name]
+            logging.debug(f"Removed module {sys_module_name} from sys.modules")
+        if sys_module_name in LOADED_MODULE_DIRS: # Clean up LOADED_MODULE_DIRS as well
+             del LOADED_MODULE_DIRS[sys_module_name]
+
+
+    # Now, re-load the modules from agi_nodes
+    # The load_custom_node function expects module_path and module_parent
+    # The module_parent for agi_nodes would be "custom_nodes" as per our folder_paths.py modification.
+    # Or, more accurately, it's the folder name itself if we want to be specific for RELATIVE_PYTHON_MODULE.
+    # Let's use 'agi_nodes' as module_parent for clarity if it's used for RELATIVE_PYTHON_MODULE.
+    # The `init_external_custom_nodes` uses "custom_nodes" as parent for things in custom_nodes folder.
+    # Since `agi_nodes` is added to `custom_nodes` paths, `load_custom_node` will be called with `module_parent="custom_nodes"`.
+
+    reloaded_count = 0
+    failed_reload_count = 0
+
+    # We need to ensure load_custom_node doesn't ignore already processed nodes
+    # It uses a `base_node_names` set to ignore. For reloading, this isn't what we want.
+    # However, since we deleted the old classes, they won't be in `base_node_names` if it's freshly constructed.
+    # The `init_external_custom_nodes` builds `base_node_names` from current NODE_CLASS_MAPPINGS *before* iterating.
+    # This direct call to load_custom_node will use whatever is currently in NODE_CLASS_MAPPINGS for its ignore set.
+    # Since we've removed the AGI nodes, they shouldn't be ignored.
+
+    current_base_node_names = set(NODE_CLASS_MAPPINGS.keys())
+
+    for module_path in agi_module_paths_to_reload:
+        logging.info(f"Reloading AGI module: {module_path}")
+        # The module_parent argument to load_custom_node is used for node_cls.RELATIVE_PYTHON_MODULE
+        # It should reflect the Python import path structure.
+        # If agi_nodes is at the root, then it might be just 'agi_nodes'.
+        # The original call from init_external_custom_nodes uses 'custom_nodes'.
+        # Let's stick to "custom_nodes" as parent since that's how it's found via folder_paths.
+        if load_custom_node(module_path, current_base_node_names, module_parent="custom_nodes"):
+            reloaded_count += 1
+        else:
+            failed_reload_count += 1
+            logging.warning(f"Failed to reload AGI module: {module_path}")
+
+    msg = f"AGI nodes reloaded. Reloaded: {reloaded_count}, Failed: {failed_reload_count}."
+    logging.info(msg)
+    return msg
 
 
 def init_builtin_api_nodes():

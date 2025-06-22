@@ -1,0 +1,2 @@
+This directory will hold the modified frontend source files for Comfy Cortex.
+It will mirror the structure of the official ComfyUI_frontend/src directory.
