@@ -1,0 +1,91 @@
+openapi: 3.0.0
+info:
+  title: Comfy Cortex VictorModules API
+  version: v1
+  description: API for retrieving information about loaded VictorModules in Comfy Cortex.
+
+servers:
+  - url: http://127.0.0.1:8188 # Default ComfyUI server URL
+    description: Local Comfy Cortex server
+
+paths:
+  /victor_modules_info:
+    get:
+      summary: Get Information About Loaded VictorModules
+      description: |
+        Retrieves a list of all currently loaded and validated VictorModules,
+        including their metadata, version, file hash, and ComfyUI display details.
+      operationId: getVictorModulesInfo
+      tags:
+        - VictorModules
+      responses:
+        '200':
+          description: A list of loaded VictorModules.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VictorModuleInfo'
+        '500':
+          description: Internal server error, e.g., if victor_loader.py cannot be imported or an error occurs during info retrieval.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: "VictorLoader module not found."
+
+components:
+  schemas:
+    VictorModuleInfo:
+      type: object
+      properties:
+        node_name:
+          type: string
+          description: The unique internal name (key) used for the node in ComfyUI's NODE_CLASS_MAPPINGS.
+          example: "EchoVictorNode"
+        filename:
+          type: string
+          description: The base filename of the Python module (e.g., 'echo_victor.py').
+          example: "echo_victor.py"
+        version:
+          type: string
+          description: The version string of the VictorModule (from VictorModule.VERSION or metadata).
+          example: "v1.0.0-ECHO-GODCORE"
+        hash:
+          type: string
+          description: A short SHA256 hash of the module file's content.
+          example: "a1b2c3d4e5"
+        display_name:
+          type: string
+          description: The UI-friendly name for the node.
+          example: "Echo Victor (Debug)"
+        category:
+          type: string
+          description: The category under which the node appears in the ComfyUI menu.
+          example: "VictorModules/Debug"
+        metadata:
+          type: object
+          description: The full metadata dictionary returned by the module's get_metadata() method. Structure can vary per module.
+          additionalProperties: true # Allows for arbitrary key-value pairs in metadata
+          example:
+            node_name: "EchoVictorNode"
+            display_name: "Echo Victor (Debug)"
+            version: "v1.0.0-ECHO-GODCORE"
+            category: "VictorModules/Debug"
+            description: "Echoes the input_data. For Victor pipeline debugging."
+            author: "Jules @ Dev for Bando"
+      required:
+        - node_name
+        - filename
+        - version
+        - hash
+        - display_name
+        - category
+        - metadata
