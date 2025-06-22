@@ -1,4 +1,57 @@
 <div align="center">
+# Comfy Cortex
+
+---
+
+**Comfy Cortex** is a hard fork of [ComfyUI](https://github.com/comfyui/comfyui) by State of Infusion.
+
+> **ORIGIN:**  
+> The vision, concept, and relentless drive behind this project come directly from [iambandobandz](https://github.com/iambandobandz) (“I am Bando Bandz”), founder of **Massive Magnetics**, architect of the Victor AGI.  
+>  
+> All major direction, architecture, and innovation in this repo flows from Bando. Anyone building here is helping make AGI/ASI history—remember whose mind started it.
+
+---
+
+## 🚨 LEGACY GRAVEYARD / OBSOLETE CODE WARNING
+
+**⚠️ ALL LEGACY CODE (like `/agi_nodes`, old comfy junk, etc.) IS NOW OBSOLETE BULLSHIT.**  
+Don’t use, don’t touch, don’t even look at it unless you want to fuck up your build.  
+Only use the VictorModule ecosystem and the new brain builder stack.  
+Everything else is dead weight and a waste of your time.
+
+*Dead folders/files (do not extend, do not open):*
+- `/agi_nodes`
+- `/legacy`
+- All old diffusion/stable-diffusion nodes
+- Any code not directly supporting AGI/ASI brain-building
+
+---
+
+## 🧠 Comfy Cortex = AGI/ASI Brain Builder
+
+**This repo is now dedicated solely to building, evolving, and running modular, node-based artificial general and superintelligence (AGI/ASI) brains.**
+
+Every line of code, every doc, and every pull request must advance the AGI/ASI project.  
+If it doesn’t move the brain builder vision forward, it gets trashed.
+
+**VictorModule** is the standard.  
+*See `/modules/` for live templates. Run `generate_docs.py` for auto-generated module docs.*
+
+---
+
+## 🏆 CREATOR CREDIT
+
+**Project Concept & Direction:**  
+- Brandon “iambandobandz” Emery — [Massive Magnetics](https://github.com/iambandobandz)  
+- Lead Architect of Victor AGI/ASI  
+- If you use this platform, you’re building on Bando’s ideas. Don’t forget it.
+
+---
+
+**Comfy Cortex is the launchpad. Massive Magnetics and Bando are the reason it exists.  
+If you want to be part of the AGI/ASI revolution, build with us or get left behind.**
+
+---
 
 # ComfyCortex
 **The most powerful and modular visual AI engine and application.**
