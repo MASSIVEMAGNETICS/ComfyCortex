@@ -80,7 +80,7 @@ Enables 3D mesh-based neural propagation, introspection, and real-time mutation.
 ### Main Function (`run_monolith_node`):
 ```
 Initializes or reuses a BandoRealityMeshMonolith instance based on `mesh_dim` and `mesh_depth`.
-Processes the `input_signal` (converting from JSON string if necessary, or handling 'random_noise').
+Processes the `input_signal` (expecting np.ndarray).
 Selects a `start_node_id` (handling 'random' keyword).
 Propagates the signal through the mesh using `monolith_instance.propagate()`.
 Returns the final mesh embedding (as a Python object/NumPy array),
@@ -165,6 +165,43 @@ Input arguments must match keys in INPUT_TYPES.
 
 ---
 
+## Load Reality Mesh State (VM)
+
+-   **Node Name (Key)**: `MeshStateLoaderNode`
+-   **File**: `victor_mesh_state_loader.py`
+-   **Version**: `v5.0.0-REALITY-MESH-GODCORE-LOADER-VM`
+-   **Category**: `Victor/AGI/Mesh/State`
+-   **Hash**: `(dynamic_hash_would_be_here)`
+-   **Description (from metadata)**: Loads a previously saved Reality Mesh state (summary and history) from a JSON file on disk. Outputs JSON strings suitable for other mesh nodes.
+
+### Class Docstring:
+```
+VictorModule: Loads mesh summary and history from a previously saved JSON state file.
+Outputs these as JSON strings, ready to feed back into other mesh nodes.
+```
+
+### Inputs:
+    *   **Required Inputs:**
+        *   `filepath` (`STRING`): Default = `saved_mesh_states/your_mesh_file.json`. Full or relative path to the saved mesh state JSON file.
+
+### Outputs:
+    *   **Outputs:**
+        *   `mesh_summary_json` (`STRING`)
+        *   `mesh_history_json` (`STRING`)
+        *   `loaded_filepath_str` (`STRING`)
+
+### Main Function (`load_mesh_state`):
+```
+Takes a filepath string to a JSON file previously saved by MeshStateSaverNode.
+Reads the file, parses the JSON, and extracts the 'mesh_summary' and 'mesh_history'
+components from the saved structure.
+Outputs these components as individual JSON strings, along with the filepath from which data was loaded.
+Handles file I/O errors and JSON parsing errors gracefully by returning error messages
+and empty JSON strings for data outputs.
+```
+
+---
+
 ## Math Operation (Victor)
 
 -   **Node Name (Key)**: `MathVictorNode`
@@ -201,7 +238,47 @@ and an error message in status_message.
 
 ---
 
-## Mesh History Viewer (VM)
+## MetaLoop Info (Victor)
+
+-   **Node Name (Key)**: `MetaLoopTrendVictorNode`
+-   **File**: `victor_meta_loop_trend.py`
+-   **Version**: `v1.0.0-METALOOP-TREND-NODE`
+-   **Category**: `VictorModules/Pipeline Inspectors`
+-   **Hash**: `(dynamic_hash_would_be_here)`
+-   **Description (from metadata)**: Views MetaLoop data (trends, scores, distillation steps) from a BandoCognitionPipeline's JSON state. Outputs a summary string, the last evaluation score, and total evaluation count.
+
+### Class Docstring:
+```
+No docstring available.
+```
+
+### Inputs:
+    *   **Required Inputs:**
+        *   `pipeline_state_in_json` (`STRING`): Default = `N/A`. JSON state from BandoCognitionPipelineNode or compatible.
+    *   **Optional Inputs:**
+        *   `max_trends_to_display` (`INT`): Default = `5`.
+        *   `max_scores_to_display` (`INT`): Default = `5`.
+
+### Outputs:
+    *   **Outputs:**
+        *   `metaloop_summary_str` (`STRING`)
+        *   `last_score_float` (`FLOAT`)
+        *   `total_evaluations_int` (`INT`)
+
+### Main Function (`view_metaloop_info`):
+```
+Parses the pipeline_state_in_json to extract the 'meta_loop_summary'.
+Formats a string detailing total trends, evaluations, distillation steps,
+and a list of recent evaluation scores (with their associated metadata summarized).
+Outputs this summary string, the numerical value of the very last score,
+and the total count of evaluations.
+Note: The current pipeline state serialization only includes a summary of recent scores,
+not the full trend log.
+```
+
+---
+
+## Reality Mesh History Viewer (VM)
 
 -   **Node Name (Key)**: `MeshHistoryViewerNode`
 -   **File**: `victor_mesh_history_viewer.py`
@@ -278,6 +355,82 @@ Handles JSON decoding errors.
 
 ---
 
+## Save Reality Mesh State (VM)
+
+-   **Node Name (Key)**: `MeshStateSaverNode`
+-   **File**: `victor_mesh_state_saver.py`
+-   **Version**: `v5.0.0-REALITY-MESH-GODCORE-SAVER-VM`
+-   **Category**: `Victor/AGI/Mesh/State`
+-   **Hash**: `(dynamic_hash_would_be_here)`
+-   **Description (from metadata)**: Saves the current Reality Mesh state (summary and history JSONs) to a timestamped JSON file on disk for persistence and later reloading.
+
+### Class Docstring:
+```
+VictorModule: Dumps the mesh state (summary + history from JSON inputs) to a .json file.
+```
+
+### Inputs:
+    *   **Required Inputs:**
+        *   `mesh_summary_json` (`STRING`): Default = `N/A`. JSON string of the mesh summary.
+        *   `mesh_history_json` (`STRING`): Default = `N/A`. JSON string of the mesh history.
+    *   **Optional Inputs:**
+        *   `output_directory` (`STRING`): Default = `saved_mesh_states`. Directory to save mesh state files.
+        *   `filename_tag` (`STRING`): Default = `snapshot`. Custom tag for the output filename.
+
+### Outputs:
+    *   **Outputs:**
+(This node is an OUTPUT_NODE, typically no data outputs for further processing in graph)
+
+### Main Function (`save_mesh_state`):
+```
+Takes JSON strings for mesh_summary and mesh_history.
+Constructs a state dictionary including these, versioning info, and timestamps.
+Saves this dictionary as a JSON file to the specified `output_directory`
+with a filename formatted as `mesh_state_[filename_tag]_[timestamp].json`.
+Handles directory creation and file I/O errors.
+Returns a dictionary for potential UI updates (e.g., showing the saved filepath).
+```
+
+---
+
+## Telemetry Viewer (Victor)
+
+-   **Node Name (Key)**: `TelemetryViewerVictorNode`
+-   **File**: `victor_telemetry_viewer.py`
+-   **Version**: `v1.0.0-TELEMETRY-VIEWER-NODE`
+-   **Category**: `VictorModules/Pipeline Inspectors`
+-   **Hash**: `(dynamic_hash_would_be_here)`
+-   **Description (from metadata)**: Views telemetry data from a BandoCognitionPipeline's JSON state. Can output a summary, a sample of the full log, or logs for a specific signal type.
+
+### Class Docstring:
+```
+No docstring available.
+```
+
+### Inputs:
+    *   **Required Inputs:**
+        *   `pipeline_state_in_json` (`STRING`): Default = `N/A`. JSON state from BandoCognitionPipelineNode or compatible.
+    *   **Optional Inputs:**
+        *   `signal_type_filter` (`STRING`): Default = ``. Optional: Filter telemetry by this signal type.
+        *   `last_n_entries` (`INT`): Default = `5`. Number of recent entries to display per signal type or overall.
+        *   `output_format` (`['summary', 'full_log_sample', 'signal_specific_log']`): Default = `summary`.
+
+### Outputs:
+    *   **Outputs:**
+        *   `telemetry_output_str` (`STRING`)
+
+### Main Function (`view_telemetry`):
+```
+Parses the pipeline_state_in_json to extract the 'pulse_telemetry_summary'.
+Based on the output_format, it generates a string:
+- 'summary': Shows total pulses, observed signal types, and the last recorded signal.
+- 'full_log_sample': Shows a sample of recent pulses from the available log in the state.
+- 'signal_specific_log': Shows recent pulses filtered by the 'signal_type_filter'.
+Handles cases where state or specific telemetry data is missing.
+```
+
+---
+
 ## Tokenizer (Victor)
 
 -   **Node Name (Key)**: `TokenizerVictorNode`
@@ -312,6 +465,6 @@ Outputs a list of string tokens.
 
 ---
 
-...(Conceptual entries for Fractal and Audio nodes would also be here)...
+...(Conceptual entries for Fractal and Audio nodes would also be here if they were fully implemented)...
 
 ---

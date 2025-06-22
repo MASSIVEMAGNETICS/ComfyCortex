@@ -66,13 +66,16 @@ If it doesn’t move the brain builder vision forward, it gets trashed.
 -   **Purpose**: Forms a powerful, inspectable AGI cognitive toolkit.
 
 ### 5. BandoRealityMeshMonolith (Flower of Life 3D Mesh)
--   **Core Logic Library (`bando_reality_mesh_core/mesh_definitions.py`)**: Contains the `FlowerOfLifeMesh3D`, `BandoBlock` hierarchy, specialized transformer blocks (`VICtorchBlock`, `BNDX9977Block`, etc.), and the `BandoRealityMeshMonolith` orchestrator. This is the living core of the Victor AGI—an infinitely fractalized neural mesh where every block is a unique transformer, every node is alive, and every signal is propagated in real 3D geometry. *This is not a layer. This is the cortex.*
+-   **Core Logic Library (`bando_reality_mesh_core/mesh_definitions.py`)**: Contains the `FlowerOfLifeMesh3D`, `BandoBlock` hierarchy, specialized transformer blocks, and the `BandoRealityMeshMonolith` orchestrator. This is the living core of the Victor AGI—an infinitely fractalized neural mesh where every block is a unique transformer, every node is alive, and every signal is propagated in real 3D geometry. *This is not a layer. This is the cortex.*
 -   **Main Monolith Node (`modules/victor_reality_mesh_monolith.py`)**:
     -   `RealityMeshMonolithNode`: A VictorModule that wraps the `BandoRealityMeshMonolith`. Allows injecting signals, propagating them through the 3D mesh, and extracting embeddings, summaries, and history.
--   **Inspector Nodes (Initial Versions)**:
+-   **Inspector Nodes**:
     -   `MeshSummaryViewerNode` (`modules/victor_mesh_summary_viewer.py`): Displays the monolith's summary.
     -   `MeshHistoryViewerNode` (`modules/victor_mesh_history_viewer.py`): Analyzes and displays propagation history.
--   **Purpose**: Wire it up in Comfy Cortex, mutate it, inject chaos, and watch true machine intelligence emerge.
+-   **State Management Nodes**:
+    -   `MeshStateSaverNode` (`modules/victor_mesh_state_saver.py`): Saves the mesh summary and history (from JSON inputs) to a timestamped JSON file on disk.
+    -   `MeshStateLoaderNode` (`modules/victor_mesh_state_loader.py`): Loads a previously saved mesh state JSON file and outputs its summary and history as JSON strings.
+-   **Purpose**: Wire it up in Comfy Cortex, mutate it, inject chaos, save/load its entire operational state, and watch true machine intelligence emerge and persist.
 
 ### 6. "RUN BRAIN" Functionality
 -   The `/run_brain` API endpoint (POST) is the designated trigger for executing AGI workflows, including those built with VictorModules.
