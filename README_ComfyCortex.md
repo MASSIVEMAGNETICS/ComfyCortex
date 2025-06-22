@@ -1,64 +1,59 @@
 # Comfy Cortex - AGI Brain Interface Mod for ComfyUI
 
-This project modifies the standard ComfyUI to begin transforming it into "Comfy Cortex," an interface designed for visual AGI brain construction. It introduces backend modularity for custom Python-based AGI components, a dedicated "RUN BRAIN" execution pathway, hot-reloading for AGI components, and initial frontend theming for a dark, neon aesthetic.
+This project modifies the standard ComfyUI to transform it into "Comfy Cortex," an interface designed for visual AGI brain construction. It implements the **VictorModule** system for custom Python-based components, a dedicated "RUN BRAIN" execution pathway, hot-reloading for VictorModules, new APIs for module information, and initial frontend theming for a dark, neon aesthetic.
 
 ## Core Features Implemented
 
-### 1. Backend Modularity for AGI Components
--   **`agi_nodes/` Directory**: A new top-level directory `agi_nodes/` has been created. Users can place their custom Python modules (`.py` files) here to define new AGI components.
--   **Discovery**: ComfyUI will automatically discover and load nodes defined in these modules.
--   **Convention**:
-    -   Each `.py` file in `agi_nodes/` should contain one or more node classes.
-    -   Each node class must define `INPUT_TYPES()`, `RETURN_TYPES`, `FUNCTION`, and `CATEGORY`. It's recommended to use `CATEGORY = "AGI_Components"` to group these nodes in the UI.
-    -   The module must expose `NODE_CLASS_MAPPINGS` (mapping string names to class objects) and optionally `NODE_DISPLAY_NAME_MAPPINGS` for UI presentation.
-    -   See `agi_nodes/basic_agi_node.py` for an example.
+### 1. VictorModule System (`modules/` & `victor_loader.py`)
+-   **`modules/` Directory**: This is the official directory for all custom AGI components, now called VictorModules.
+-   **`victor_loader.py`**: This new backend script handles all loading, validation, and registration of VictorModules.
+    -   **Discovery & Validation**: Scans `modules/` for `.py` files. Each file should define a class named `VictorModule`. The loader validates that this class has `__init__`, `forward`, and `get_metadata` methods. It also expects a `VERSION` class attribute (or in metadata) and ComfyUI-standard `INPUT_TYPES`, `RETURN_TYPES`, `FUNCTION`, and `CATEGORY` attributes/methods.
+    -   **Integration**: Valid VictorModules are registered with ComfyUI's `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS`. Display names and categories are derived from the module's `get_metadata()` method.
+    -   **Internal Registry**: `victor_loader.py` maintains its own `loaded_modules` dictionary containing detailed information about each loaded module (path, hash, version, metadata, etc.).
+-   **Example**: See `modules/echo_victor.py` for a template.
 
-### 2. "RUN BRAIN" Functionality
--   **API Endpoint**: A new backend API endpoint `/run_brain` (POST) has been added.
--   **Purpose**: This endpoint is intended to be the trigger for executing an AGI "brain" (a ComfyUI workflow). It currently functions similarly to the standard `/prompt` endpoint but provides a dedicated pathway for AGI executions.
--   **Frontend Integration**: A placeholder "RUN BRAIN" button has been added to the frontend (`index.html`) which, when clicked, sends the current (dummy) workflow to this endpoint.
+### 2. ComfyUI Startup Integration
+-   `nodes.py` has been updated to call `victor_loader.load_victor_modules()` during startup, ensuring all VictorModules are loaded and available.
+-   Previous custom loading logic for `agi_nodes/` has been removed.
 
-### 3. Hot-Reloading for AGI Components
--   **API Endpoint**: A new backend API endpoint `/reload_agi_modules` (POST) allows for hot-reloading of all modules within the `agi_nodes/` directory.
--   **Functionality**: When called, this endpoint will:
-    1.  Identify all currently registered nodes that originated from `agi_nodes/`.
-    2.  Remove their definitions from ComfyUI's node mappings.
-    3.  Clear the Python modules from `sys.modules`.
-    4.  Re-scan the `agi_nodes/` directory and load all modules found, registering any new or modified nodes.
--   **Usage**: This is primarily a developer feature to allow iteration on AGI components without restarting the full ComfyUI server. It can be triggered manually (e.g., via `curl` or a developer tool).
+### 3. Hot-Reloading for VictorModules
+-   **API Endpoint**: A new backend API endpoint `@routes.post('/reload_victor_modules')` is available.
+-   **Functionality**: Calling this endpoint triggers `victor_loader.reload_victor_modules_command()`. This command re-scans the `modules/` directory, unregisters all existing VictorModules, clears them from `sys.modules`, and then performs a fresh load and registration of all found VictorModules.
+-   **Usage**: Allows developers to update VictorModule code and see changes without a full server restart. (e.g., `curl -X POST http://127.0.0.1:8188/reload_victor_modules`)
 
-### 4. Frontend Theming (Dark & Neon) - Initial Phase
--   **Custom Frontend Root**: The system is set up to serve a custom frontend from a directory specified by the `--front-end-root` argument when launching ComfyUI (e.g., `--front-end-root comfy_cortex_dist/`).
--   **`comfy_cortex_dist/`**: This directory contains initial frontend files:
+### 4. Backend API for Module Information
+-   **API Endpoint**: A new backend API endpoint `@routes.get('/victor_modules_info')` is available.
+-   **Functionality**: This endpoint calls `victor_loader.get_loaded_modules_info()` and returns a JSON list of all loaded VictorModules, including their filename, version, hash, display name, category, and other metadata.
+-   **Purpose**: To provide data for the conceptual "Cortex Library" UI sidebar.
+
+### 5. "RUN BRAIN" Functionality
+-   **API Endpoint**: The `/run_brain` (POST) endpoint remains for triggering AGI workflows.
+-   **Execution**: Workflows containing VictorModules will be executed by ComfyUI's standard engine, as VictorModules are registered like any other custom node.
+
+### 6. Frontend Theming & Basic Structure (Simulated)
+-   **Custom Frontend Root**: The system is set up to serve a custom frontend from `comfy_cortex_dist/` using the `--front-end-root comfy_cortex_dist/` argument.
+-   **`comfy_cortex_dist/`**: Contains:
     -   `index.html`: Basic page structure with a "RUN BRAIN" button.
-    -   `style.css`: Implements a dark theme with neon green, cyan, and magenta accents. Includes placeholder styles for UI elements, graph nodes (with specific styling for `.agi-component` nodes), and connections.
-    -   `tailwind.config.js`: (Conceptual) Defines the color palette used in `style.css`.
-    -   `main.js`: Placeholder for Vue app initialization, currently handles the "RUN BRAIN" button click.
--   **Aesthetic**: The theme aims for a dark, futuristic, neon look suitable for "Comfy Cortex."
+    -   `style.css`: Implements a dark theme with neon green, cyan, and magenta accents. Includes styles for UI elements and conceptual VictorModule nodes.
+    -   `main.js`: Handles the "RUN BRAIN" button click and is the placeholder for Vue app init.
+-   **Aesthetic**: Aims for a dark, futuristic, "Comfy Cortex" look.
 
 ## How to Use
 
-1.  **Place AGI Components**: Create your Python AGI node modules in the `agi_nodes/` directory. Follow the conventions described above.
-2.  **Run ComfyUI with Custom Frontend**:
+1.  **Create VictorModules**: Develop your Python AGI components as classes named `VictorModule` in `.py` files within the `modules/` directory. Ensure they have `VERSION`, `INPUT_TYPES`, `RETURN_TYPES`, `FUNCTION`, `CATEGORY`, `__init__`, `forward`, and `get_metadata` (see `modules/echo_victor.py`).
+2.  **Run Comfy Cortex**:
     ```bash
     python main.py --front-end-root comfy_cortex_dist/
     ```
-3.  **Access UI**: Open ComfyUI in your browser. You should see the initial dark theme and the "RUN BRAIN" button.
-4.  **Add AGI Nodes**: Your components from `agi_nodes/` should appear in the "Add Node" menu, under the "AGI_Components" category (or as specified in your node).
-5.  **"Run Brain"**: Clicking the "RUN BRAIN" button will (currently) send a dummy workflow to the `/run_brain` endpoint.
-6.  **Hot-Reload (Developer)**: If you modify files in `agi_nodes/`, you can send a POST request to `/reload_agi_modules` to see changes without a server restart. For example:
-    ```bash
-    curl -X POST http://127.0.0.1:8188/reload_agi_modules
-    ```
+3.  **Access UI**: Open ComfyUI in your browser. You'll see the dark theme and "RUN BRAIN" button. VictorModules should appear in the "Add Node" menu under their specified category.
+4.  **"Run Brain"**: Clicking the "RUN BRAIN" button sends a (dummy) workflow to `/run_brain`.
+5.  **Hot-Reload**: After modifying files in `modules/`, POST to `/reload_victor_modules` to update.
+6.  **Module Info**: GET `/victor_modules_info` to retrieve data about loaded modules.
 
-## Next Steps & Future Development
+## Conceptual Frontend Features (Future Work)
 
--   Fully implement the Vue.js frontend within `comfy_cortex_dist/` by adapting the official `ComfyUI_frontend` source.
--   Refine the visual wiring and representation of AGI components in the graph.
--   Develop more sophisticated AGI component examples.
--   Enhance the "RUN BRAIN" functionality with specific start/end node identification for brains.
--   Add UI controls for hot-reloading.
--   Implement true modularity for UI panels and sections.
--   Integrate dynamic loading/unloading of entire AGI "brain" configurations.
+-   **VictorModule Node Styling**: Apply specific CSS to VictorModule nodes in the graph (CSS is defined; JS hook in frontend needed).
+-   **"Cortex Library" Sidebar**: A UI panel listing all loaded VictorModules, using data from `/victor_modules_info`.
+-   **UI Logging Console**: A panel to display real-time logs from module execution (requires WebSocket integration).
 
-This represents the foundational work towards the Comfy Cortex vision.
+This version establishes the VictorModule system as the core for custom components in Comfy Cortex.Tool output for `overwrite_file_with_block`:

@@ -692,6 +692,20 @@ class PromptServer():
                 # Potentially, different validation logic for brains
                 valid = execution.validate_prompt(prompt)
                 extra_data = {}
+
+        @routes.get('/victor_modules_info')
+        async def get_victor_modules_info_route(request):
+            logging.debug("got /victor_modules_info request")
+            try:
+                import victor_loader
+                modules_info = victor_loader.get_loaded_modules_info()
+                return web.json_response(modules_info)
+            except ImportError:
+                logging.error("[VictorLoader] Failed to import victor_loader.py for /victor_modules_info.", exc_info=True)
+                return web.json_response({"status": "error", "message": "VictorLoader module not found."}, status=500)
+            except Exception as e:
+                logging.error(f"[VictorLoader] Error retrieving VictorModules info: {e}", exc_info=True)
+                return web.json_response({"status": "error", "message": str(e)}, status=500)
                 if "extra_data" in json_data:
                     extra_data = json_data["extra_data"]
 
@@ -719,78 +733,19 @@ class PromptServer():
                 logging.warning("No prompt in run_brain request.")
                 return web.json_response({"error": error, "node_errors": {}}, status=400)
 
-        @routes.post("/reload_agi_modules")
-        async def post_reload_agi_modules(request):
-            logging.info("got reload_agi_modules request")
+        # This is the new endpoint for reloading VictorModules
+        @routes.post("/reload_victor_modules")
+        async def post_reload_victor_modules(request):
+            logging.info("got /reload_victor_modules request")
             try:
-                # This function will be implemented in nodes.py
-                # It will handle the actual reloading and updating of node mappings.
-                # For now, assume it exists and call it.
-                # We might need to pass the `nodes` module or specific functions/mappings if they are not globally accessible.
-                # However, nodes.NODE_CLASS_MAPPINGS and nodes.NODE_DISPLAY_NAME_MAPPINGS are global.
-
-                # Placeholder for the actual call to the reloading logic
-                # import nodes # Make sure nodes is imported
-                # success_message = nodes.reload_all_agi_nodes() # This function needs to be created
-
-                # Simulate success for now
-                # In a real scenario, this would call a function in nodes.py
-                # which would then modify nodes.NODE_CLASS_MAPPINGS etc.
-                # For the purpose of this step, we are just defining the endpoint.
-                # The actual reloading logic will be part of modifying nodes.py next.
-
-                # Let's assume a function reload_custom_nodes_from_directory will be created in nodes.py
-                # that can target a specific directory like 'agi_nodes'.
-                # Or a more general reload_custom_nodes() that re-runs init_external_custom_nodes()
-                # after clearing relevant parts of NODE_CLASS_MAPPINGS.
-
-                # For now, let's consider what needs to happen:
-                # 1. Clear existing AGI nodes from NODE_CLASS_MAPPINGS and NODE_DISPLAY_NAME_MAPPINGS.
-                # 2. Re-import modules from 'agi_nodes/' and update the mappings.
-                # This is complex because `load_custom_node` appends. We'd need a way to
-                # identify and remove only the AGI nodes before reloading.
-
-                # A simpler approach for now: The user is responsible for ensuring no conflicts.
-                # The reload mechanism would just re-run the loading for agi_nodes.
-                # This is not true hot-reloading with state preservation but a re-import.
-
-                # For the purpose of this step, we'll just log and return success.
-                # The actual implementation of reloading logic in nodes.py is the more complex part.
-
-                # This is where we'd call nodes.reload_agi_nodes()
-                # For now, we'll just return a success message.
-                # The actual implementation will be in the next interaction focusing on nodes.py
-
-                # Let's assume a simple re-scan like what happens at startup for custom_nodes
-                # but targeted or with a clear mechanism.
-                # For now, this endpoint just exists. The logic will be in nodes.py
-
-                # Placeholder for actual reloading logic
-                # For now, just a stub.
-                # In a real implementation, this would call nodes.trigger_agi_reload() or similar.
-                logging.info("AGI modules reload triggered. Actual reloading logic to be implemented in nodes.py.")
-
-                # This is a simplified simulation. A full reload would involve:
-                # 1. Identifying modules loaded from `agi_nodes`.
-                # 2. Removing their classes from `NODE_CLASS_MAPPINGS` and `NODE_DISPLAY_NAME_MAPPINGS`.
-                # 3. Clearing them from `sys.modules` or using `importlib.reload`.
-                # 4. Re-running the discovery and loading process for `agi_nodes`.
-                # For now, we just acknowledge the request.
-
-                # The actual work will be in nodes.py. This endpoint is just the trigger.
-                # We'll refine this once the nodes.py part is clearer.
-
-                # For now, let's assume the call to a (yet to be written) function in nodes.py
-                # nodes.handle_reload_agi_modules() # This would do the heavy lifting.
-
-                # Call the actual handler from nodes.py
-                # Ensure nodes module is accessible. It's usually imported globally in main.py,
-                # and server.py itself imports 'nodes'.
-                status_message = nodes.reload_agi_nodes_handler()
+                import victor_loader
+                status_message = victor_loader.reload_victor_modules_command()
                 return web.json_response({"status": "success", "message": status_message})
+            except ImportError:
+                logging.error("[VictorLoader] Failed to import victor_loader.py for reloading.", exc_info=True)
+                return web.json_response({"status": "error", "message": "VictorLoader module not found."}, status=500)
             except Exception as e:
-                logging.error(f"Error during AGI modules reload: {e}")
-                logging.error(traceback.format_exc())
+                logging.error(f"[VictorLoader] Error during VictorModules reload via API: {e}", exc_info=True)
                 return web.json_response({"status": "error", "message": str(e)}, status=500)
 
         @routes.post("/queue")

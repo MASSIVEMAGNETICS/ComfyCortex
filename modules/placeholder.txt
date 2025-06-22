@@ -1,0 +1,2 @@
+This directory is for VictorModules.
+Each .py file should define a class named VictorModule with __init__, forward, and get_metadata methods.

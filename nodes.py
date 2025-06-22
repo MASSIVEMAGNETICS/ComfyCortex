@@ -2382,11 +2382,6 @@ def reload_agi_nodes_handler():
             failed_reload_count += 1
             logging.warning(f"Failed to reload AGI module: {module_path}")
 
-    msg = f"AGI nodes reloaded. Reloaded: {reloaded_count}, Failed: {failed_reload_count}."
-    logging.info(msg)
-    return msg
-
-
 def init_builtin_api_nodes():
     api_nodes_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "comfy_api_nodes")
     api_nodes_files = [
@@ -2425,6 +2420,16 @@ def init_extra_nodes(init_custom_nodes=True, init_api_nodes=True):
         init_external_custom_nodes()
     else:
         logging.info("Skipping loading of custom nodes")
+
+    # Initialize VictorModules
+    try:
+        import victor_loader
+        logging.info("Initializing VictorModules...")
+        victor_loader.load_victor_modules()
+    except ImportError:
+        logging.warning("[VictorLoader] victor_loader.py not found. VictorModules will not be loaded.")
+    except Exception as e:
+        logging.error(f"[VictorLoader] Error during VictorModule initialization: {e}", exc_info=True)
 
     if len(import_failed_api) > 0:
         logging.warning("WARNING: some comfy_api_nodes/ nodes did not import correctly. This may be because they are missing some dependencies.\n")
